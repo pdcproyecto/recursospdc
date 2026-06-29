@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Solicitudes RRHH — Packing del Carmen SAC</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e3a8a;
+      --secondary: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --bg: #f1f5f9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); }
+
+    /* ── SCREENS — FIX: ID specificity no debe pisar display:none ── */
+    .screen { display:none !important; min-height:100vh; }
+    .screen.active { display:block !important; }
+    #screen-login.active { display:flex !important; }
+    #screen-app.active   { display:flex !important; flex-direction:column; min-height:100vh; }
+
+    /* ── LOGIN ── */
+    #screen-login {
+      align-items:center; justify-content:center;
+      background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 55%,#3b82f6 100%);
+      padding:20px;
+    }
+    .login-card {
+      background:#fff; border-radius:20px; padding:48px 40px;
+      width:100%; max-width:420px;
+      box-shadow:0 25px 50px rgba(0,0,0,.3);
+    }
+    .login-logo { text-align:center; margin-bottom:32px; }
+    .logo-icon {
+      width:72px; height:72px;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      border-radius:18px; display:flex; align-items:center; justify-content:center;
+      margin:0 auto 14px; font-size:34px;
+    }
+    .login-logo h1 { font-size:21px; font-weight:800; color:var(--primary-dark); line-height:1.2; }
+    .login-logo p  { font-size:12px; color:var(--muted); margin-top:5px; }
+
+    /* ── FORM ELEMENTS ── */
+    .form-group { margin-bottom:18px; }
+    label { display:block; font-size:13px; font-weight:600; margin-bottom:5px; }
+    input, select, textarea {
+      width:100%; padding:11px 14px; border:1.5px solid var(--border);
+      border-radius:8px; font-size:14px; color:var(--text); background:#fafafa;
+      transition:border-color .2s,box-shadow .2s; outline:none; font-family:inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color:var(--primary-light);
+      box-shadow:0 0 0 3px rgba(59,130,246,.15); background:#fff;
+    }
+    textarea { resize:vertical; min-height:72px; }
+
+    /* ── BUTTONS ── */
+    .btn { display:block; width:100%; padding:13px; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; text-align:center; font-family:inherit; }
+    .btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; box-shadow:0 4px 6px rgba(30,64,175,.3); }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 14px rgba(30,64,175,.35); }
+    .btn-secondary { background:var(--bg); color:var(--text); border:1.5px solid var(--border); }
+    .btn-sm { width:auto; display:inline-block; padding:6px 14px; font-size:12px; border-radius:6px; }
+    .btn-success { background:var(--secondary); color:#fff; }
+    .btn-danger  { background:var(--danger); color:#fff; }
+    .btn-warning { background:var(--warning); color:#fff; }
+
+    .admin-link { text-align:center; margin-top:22px; }
+    .admin-link a { font-size:12px; color:var(--muted); cursor:pointer; }
+    .admin-link a:hover { color:var(--primary); }
+
+    /* ── TOGGLE Si/No ── */
+    .toggle-group { display:flex; gap:8px; }
+    .toggle-btn {
+      flex:1; padding:10px; border:1.5px solid var(--border); border-radius:8px;
+      background:#fafafa; font-size:13px; font-weight:600; cursor:pointer;
+      transition:all .2s; text-align:center; font-family:inherit;
+    }
+    .toggle-btn.si.selected  { background:#dcfce7; border-color:var(--secondary); color:#166534; }
+    .toggle-btn.no.selected  { background:#fee2e2; border-color:var(--danger);    color:#991b1b; }
+    .toggle-btn:not(.selected):hover { border-color:var(--primary-light); }
+
+    /* ── ALERTS ── */
+    .alert { padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:14px; display:none; }
+    .alert.show { display:block; }
+    .alert-error   { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+    .alert-success { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+    .alert-info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+
+    /* ── APP HEADER ── */
+    .app-header {
+      background:#fff; border-bottom:1px solid var(--border); padding:0 24px;
+      height:64px; display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100; box-shadow:var(--shadow);
+    }
+    .header-brand { display:flex; align-items:center; gap:12px; }
+    .brand-icon {
+      width:38px; height:38px;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px;
+    }
+    .brand-name { font-size:15px; font-weight:700; color:var(--primary-dark); }
+    .brand-sub  { font-size:11px; color:var(--muted); }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .user-badge { background:var(--primary); color:#fff; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+    .btn-logout { background:none; border:1.5px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:8px; font-size:12px; cursor:pointer; transition:all .2s; }
+    .btn-logout:hover { border-color:var(--danger); color:var(--danger); }
+
+    /* ── TABS ── */
+    .app-tabs { background:#fff; border-bottom:1px solid var(--border); padding:0 24px; display:flex; gap:4px; }
+    .tab-btn { padding:14px 18px; border:none; background:none; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2.5px solid transparent; transition:all .2s; font-family:inherit; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .tab-btn:hover { color:var(--primary); }
+
+    /* ── CONTENT ── */
+    .app-content { flex:1; padding:28px 24px; max-width:960px; margin:0 auto; width:100%; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    /* ── CARD ── */
+    .card { background:#fff; border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); margin-bottom:20px; }
+    .card-title    { font-size:18px; font-weight:700; color:var(--primary-dark); margin-bottom:4px; }
+    .card-subtitle { font-size:13px; color:var(--muted); margin-bottom:24px; }
+
+    /* ── FORM GRID ── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-grid .full { grid-column:1/-1; }
+    .form-grid .third { grid-column:span 1; }
+    .section-sep { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:20px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+    /* ── STATS ── */
+    .stats-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+    .stat-card { background:#fff; border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); text-align:center; border-top:3px solid var(--primary); }
+    .stat-card.w { border-top-color:var(--warning); }
+    .stat-card.s { border-top-color:var(--secondary); }
+    .stat-card.d { border-top-color:var(--danger); }
+    .stat-num { font-size:30px; font-weight:800; color:var(--primary-dark); }
+    .stat-card.w .stat-num { color:var(--warning); }
+    .stat-card.s .stat-num { color:var(--secondary); }
+    .stat-card.d .stat-num { color:var(--danger); }
+    .stat-lbl { font-size:11px; color:var(--muted); font-weight:600; margin-top:4px; }
+
+    /* ── FILTERS ── */
+    .filters { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+    .filters select { width:auto; flex:1; min-width:130px; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead tr { background:var(--primary); }
+    thead th { padding:11px 13px; text-align:left; font-weight:600; color:#fff; white-space:nowrap; }
+    tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:#f8faff; }
+    tbody tr.row-highlight { background:#fef9c3; }
+    tbody tr.row-highlight:hover { background:#fef08a; }
+    tbody td { padding:10px 13px; }
+
+    /* ── BADGES ── */
+    .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+    .b-pend { background:#fef9c3; color:#854d0e; }
+    .b-apro { background:#dcfce7; color:#166534; }
+    .b-rech { background:#fee2e2; color:#991b1b; }
+    .b-si   { background:#dcfce7; color:#166534; }
+    .b-no   { background:#f1f5f9; color:#64748b; }
+
+    /* ── LOADER ── */
+    .loader { display:none; text-align:center; padding:40px; color:var(--muted); }
+    .loader.show { display:block; }
+    .spinner { display:inline-block; width:30px; height:30px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin-bottom:10px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── EMPTY ── */
+    .empty { text-align:center; padding:50px 20px; color:var(--muted); }
+    .empty .eico { font-size:44px; margin-bottom:10px; }
+    .empty p { font-size:13px; }
+
+    /* ── MODAL ── */
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+    .overlay.show { display:flex; }
+    .modal { background:#fff; border-radius:16px; padding:30px; max-width:460px; width:100%; box-shadow:0 25px 50px rgba(0,0,0,.3); }
+    .modal-title { font-size:17px; font-weight:700; margin-bottom:16px; }
+    .modal-actions { display:flex; gap:10px; margin-top:22px; justify-content:flex-end; }
+    .modal-actions .btn { width:auto; }
+
+    @media(max-width:640px){
+      .app-header,.app-tabs { padding:0 14px; }
+      .app-content { padding:18px 14px; }
+      .form-grid { grid-template-columns:1fr; }
+      .stats-bar { grid-template-columns:1fr 1fr; }
+      .login-card { padding:36px 22px; }
+      .card { padding:20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════ LOGIN ══════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏭</div>
+      <h1>Packing del Carmen SAC</h1>
+      <p>Portal de Solicitudes — RRHH</p>
+    </div>
+    <div id="login-alert" class="alert"></div>
+    <div class="form-group">
+      <label>Área / Jefatura</label>
+      <select id="login-area"><option value="">Cargando áreas...</option></select>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="Ingrese su contraseña" />
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Ingresar al Portal →</button>
+    <div class="admin-link"><a onclick="openAdminLogin()">Acceso Administrador</a></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MODALS ══════════════════════ -->
+<div id="modal-admin" class="overlay">
+  <div class="modal">
+    <div class="modal-title">🔐 Acceso Administrador</div>
+    <div id="admin-alert" class="alert"></div>
+    <div class="form-group">
+      <label>Contraseña de administrador</label>
+      <input type="password" id="admin-pass" placeholder="Contraseña" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-admin')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="doAdminLogin()">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-status" class="overlay">
+  <div class="modal">
+    <div class="modal-title" id="mst-title"></div>
+    <p id="mst-body" style="font-size:13px;color:var(--muted);margin-bottom:4px;"></p>
+    <p id="mst-detail" style="font-size:12px;color:var(--muted);"></p>
+    <div class="modal-actions" id="mst-actions"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ APP ══════════════════════ -->
+<div id="screen-app" class="screen">
+
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-icon">🏭</div>
+      <div>
+        <div class="brand-name">Portal Solicitudes RRHH</div>
+        <div class="brand-sub">Packing del Carmen SAC</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="user-badge" id="hdr-area">—</span>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+
+  <nav class="app-tabs" id="app-tabs">
+    <button class="tab-btn active" data-tab="nueva" onclick="switchTab('nueva')">📋 Nueva Solicitud</button>
+    <button class="tab-btn" data-tab="mis" onclick="switchTab('mis');loadMis()">📁 Mis Solicitudes</button>
+  </nav>
+
+  <main class="app-content">
+
+    <!-- ── TAB: NUEVA SOLICITUD ── -->
+    <div id="tab-nueva" class="tab-content active">
+      <div class="card">
+        <div class="card-title">Nueva Solicitud de Transporte / Alimentación</div>
+        <div class="card-subtitle">Complete los datos para registrar la programación del servicio</div>
+
+        <div id="sub-alert" class="alert"></div>
+
+        <div class="form-grid">
+          <!-- Fecha -->
+          <div class="form-group">
+            <label>Fecha del Servicio</label>
+            <input type="date" id="f-fecha" />
+          </div>
+          <!-- Ciudad -->
+          <div class="form-group">
+            <label>Ciudad</label>
+            <select id="f-ciudad">
+              <option value="">Seleccione ciudad</option>
+              <option value="Chincha">Chincha</option>
+              <option value="Pisco">Pisco</option>
+              <option value="Ica">Ica</option>
+              <option value="Lima">Lima</option>
+              <option value="Otra">Otra</option>
+            </select>
+          </div>
+          <!-- Área/Proceso -->
+          <div class="form-group full">
+            <label>Área / Proceso</label>
+            <input type="text" id="f-area-proceso" placeholder="Ej: Palta - Turno Día (Genesis)" />
+          </div>
+          <!-- N° personas -->
+          <div class="form-group">
+            <label>N° de Personas</label>
+            <input type="number" id="f-personas" min="1" max="9999" placeholder="Ej: 23" />
+          </div>
+          <!-- Hora partida -->
+          <div class="form-group">
+            <label>Hora de Partida</label>
+            <input type="time" id="f-hora-partida" />
+          </div>
+          <!-- Hora salida -->
+          <div class="form-group">
+            <label>Hora de Salida (retorno)</label>
+            <input type="time" id="f-hora-salida" />
+          </div>
+          <!-- Espacio -->
+          <div></div>
+          <!-- Almuerzo -->
+          <div class="form-group">
+            <label>Almuerzo</label>
+            <div class="toggle-group">
+              <button class="toggle-btn si selected" id="alm-si" onclick="setToggle('almuerzo','Si')">✓ Sí</button>
+              <button class="toggle-btn no" id="alm-no" onclick="setToggle('almuerzo','No')">✗ No</button>
+            </div>
+          </div>
+          <!-- Cena -->
+          <div class="form-group">
+            <label>Cena</label>
+            <div class="toggle-group">
+              <button class="toggle-btn si selected" id="cen-si" onclick="setToggle('cena','Si')">✓ Sí</button>
+              <button class="toggle-btn no" id="cen-no" onclick="setToggle('cena','No')">✗ No</button>
+            </div>
+          </div>
+          <!-- Observaciones -->
+          <div class="form-group full">
+            <label>Observaciones <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
+            <textarea id="f-obs" placeholder="Detalles adicionales..."></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="doSubmit()">Enviar Solicitud</button>
+      </div>
+    </div>
+
+    <!-- ── TAB: MIS SOLICITUDES ── -->
+    <div id="tab-mis" class="tab-content">
+      <div class="card">
+        <div class="card-title">Mis Solicitudes</div>
+        <div class="card-subtitle">Historial de solicitudes registradas por su área</div>
+        <div class="loader" id="ldr-mis"><div class="spinner"></div><br>Cargando...</div>
+        <div id="mis-container"><div class="empty"><div class="eico">📂</div><p>No hay solicitudes</p></div></div>
+      </div>
+    </div>
+
+    <!-- ── TAB: ADMIN ── -->
+    <div id="tab-admin" class="tab-content">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-card w"><div class="stat-num" id="s-pend">—</div><div class="stat-lbl">Pendientes</div></div>
+        <div class="stat-card s"><div class="stat-num" id="s-apro">—</div><div class="stat-lbl">Aprobados</div></div>
+        <div class="stat-card d"><div class="stat-num" id="s-rech">—</div><div class="stat-lbl">Rechazados</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Panel de Administración</div>
+        <div class="card-subtitle">Gestione y apruebe todas las solicitudes del sistema</div>
+        <div class="filters">
+          <select id="f-status" onchange="applyFilters()">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Aprobado">Aprobado</option>
+            <option value="Rechazado">Rechazado</option>
+          </select>
+          <select id="f-ciudad-f" onchange="applyFilters()">
+            <option value="">Todas las ciudades</option>
+            <option value="Chincha">Chincha</option>
+            <option value="Pisco">Pisco</option>
+            <option value="Ica">Ica</option>
+            <option value="Lima">Lima</option>
+          </select>
+          <select id="f-area-f" onchange="applyFilters()"><option value="">Todas las áreas</option></select>
+          <button class="btn btn-secondary btn-sm" onclick="loadAdmin()">🔄 Actualizar</button>
+        </div>
+        <div class="loader" id="ldr-admin"><div class="spinner"></div><br>Cargando...</div>
+        <div id="admin-container"><div class="empty"><div class="eico">📊</div><p>Pulse Actualizar</p></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════ SCRIPT ══════════════════════ -->
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzu6miVHsUR1TNfwGas9vMbiMcfiBJ_hTaCqxDxERIWGuGFDooFVrFcAiLJYSEF0VgX/exec';
+const DEMO_MODE  = SCRIPT_URL === 'TU_SCRIPT_URL_AQUI';
+
+// ── STATE ──
+let user      = null;
+let adminMode = false;
+let adminKey  = '';
+let allReqs   = [];
+let almuerzo  = 'Si';
+let cena      = 'Si';
+
+// ── DEMO DATA ──
+const DEMO_AREAS = ['Producción','Logística','Calidad','Administración','RRHH','Mantenimiento'];
+const DEMO_REQS  = [
+  { id:'SOL-0001', timestamp:new Date().toISOString(), areaSolicitante:'Producción', fecha:'2026-07-01', ciudad:'Chincha', areaProceso:'Palta - Turno Día (Genesis)', nPersonas:23, horaPartida:'07:50', horaSalida:'23:00', almuerzo:'Si', cena:'Si', observaciones:'', estado:'Pendiente' },
+  { id:'SOL-0002', timestamp:new Date(Date.now()-86400000).toISOString(), areaSolicitante:'Logística', fecha:'2026-06-30', ciudad:'Pisco', areaProceso:'Cítrico - Turno Día (Reemon)', nPersonas:200, horaPartida:'07:50', horaSalida:'23:00', almuerzo:'Si', cena:'Si', observaciones:'Personal adicional', estado:'Aprobado' },
+  { id:'SOL-0003', timestamp:new Date(Date.now()-172800000).toISOString(), areaSolicitante:'Calidad', fecha:'2026-06-29', ciudad:'Chincha', areaProceso:'Supervisores y Coordinadores', nPersonas:10, horaPartida:'07:20', horaSalida:'23:00', almuerzo:'Si', cena:'Si', observaciones:'', estado:'Aprobado' },
+];
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  loadAreas();
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-fecha').min   = today;
+  document.getElementById('f-fecha').value = today;
+  document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  document.getElementById('admin-pass').addEventListener('keydown', e => { if(e.key==='Enter') doAdminLogin(); });
+  document.querySelectorAll('.overlay').forEach(o => {
+    o.addEventListener('click', e => { if(e.target===o) o.classList.remove('show'); });
+  });
+});
+
+// ── API ──
+async function api(params) {
+  const qs = Object.entries(params)
+    .map(([k,v]) => encodeURIComponent(k)+'='+encodeURIComponent(String(v??'')))
+    .join('&');
+
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?' + qs, {
+      method:'GET', signal:controller.signal, redirect:'follow'
+    });
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('Error HTTP ' + res.status);
+    const text = await res.text();
+    // Handles both plain JSON and JSONP wrapper
+    const clean = text.replace(/^[^(]*\(/, '').replace(/\);?\s*$/, '');
+    try { return JSON.parse(clean); } catch { return JSON.parse(text); }
+  } catch(err) {
+    clearTimeout(tid);
+    if (err.name==='AbortError') throw new Error('Tiempo de espera agotado.');
+    throw new Error('Error de conexión: ' + err.message);
+  }
+}
+
+// ── TOGGLE ──
+function setToggle(field, val) {
+  if (field === 'almuerzo') {
+    almuerzo = val;
+    document.getElementById('alm-si').className = 'toggle-btn si' + (val==='Si'?' selected':'');
+    document.getElementById('alm-no').className = 'toggle-btn no' + (val==='No'?' selected':'');
+  } else {
+    cena = val;
+    document.getElementById('cen-si').className = 'toggle-btn si' + (val==='Si'?' selected':'');
+    document.getElementById('cen-no').className = 'toggle-btn no' + (val==='No'?' selected':'');
+  }
+}
+
+// ── AREAS ──
+async function loadAreas() {
+  const sel = document.getElementById('login-area');
+  try {
+    if (DEMO_MODE) {
+      sel.innerHTML = '<option value="">Seleccione su área</option>' +
+        DEMO_AREAS.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+      return;
+    }
+    const res = await api({ action:'getAreas' });
+    if (res.success) {
+      sel.innerHTML = '<option value="">Seleccione su área</option>' +
+        res.areas.map(a=>`<option value="${esc(a.nombre)}">${esc(a.nombre)}</option>`).join('');
+    }
+  } catch(e) { sel.innerHTML = '<option value="">Error al cargar áreas</option>'; }
+}
+
+// ── LOGIN ──
+async function doLogin() {
+  const area = document.getElementById('login-area').value;
+  const pass = document.getElementById('login-pass').value;
+  if (!area || !pass) { showAlert('login-alert','error','Seleccione su área e ingrese la contraseña.'); return; }
+  showAlert('login-alert','info','Verificando...');
+  try {
+    if (DEMO_MODE) { user={area,areaNombre:area}; enterApp(); return; }
+    const res = await api({ action:'login', area, clave:pass });
+    if (res.success) { user={area:res.areaNombre,areaNombre:res.areaNombre}; enterApp(); }
+    else showAlert('login-alert','error', res.error||'Área o contraseña incorrectos.');
+  } catch(e) { showAlert('login-alert','error', e.message); }
+}
+
+function openAdminLogin() {
+  document.getElementById('admin-pass').value='';
+  hideAlert('admin-alert');
+  openModal('modal-admin');
+}
+
+async function doAdminLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  if (!pass) return;
+  showAlert('admin-alert','info','Verificando...');
+  try {
+    if (DEMO_MODE) { adminKey=pass; adminMode=true; user={area:'Administrador',areaNombre:'Administrador'}; closeModal('modal-admin'); enterApp(true); return; }
+    const res = await api({ action:'adminLogin', clave:pass });
+    if (res.success) { adminKey=pass; adminMode=true; user={area:'Administrador',areaNombre:'Administrador'}; closeModal('modal-admin'); enterApp(true); }
+    else showAlert('admin-alert','error', res.error||'Clave incorrecta.');
+  } catch(e) { showAlert('admin-alert','error', e.message); }
+}
+
+function enterApp(asAdmin=false) {
+  // Hide login, show app — properly
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  document.getElementById('hdr-area').textContent = user.areaNombre;
+
+  if (asAdmin && !document.getElementById('admin-tab-btn')) {
+    const btn = document.createElement('button');
+    btn.id='admin-tab-btn'; btn.className='tab-btn'; btn.setAttribute('data-tab','admin');
+    btn.textContent='⚙️ Administración';
+    btn.onclick = () => { switchTab('admin'); loadAdmin(); };
+    document.getElementById('app-tabs').appendChild(btn);
+  }
+}
+
+function doLogout() {
+  user=null; adminMode=false; adminKey='';
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('login-pass').value='';
+  hideAlert('login-alert');
+  const at=document.getElementById('admin-tab-btn');
+  if(at)at.remove();
+  switchTab('nueva');
+}
+
+// ── TABS ──
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if(b.getAttribute('data-tab')===id) b.classList.add('active');
+  });
+}
+
+// ── SUBMIT ──
+async function doSubmit() {
+  const fecha       = document.getElementById('f-fecha').value;
+  const ciudad      = document.getElementById('f-ciudad').value;
+  const areaProceso = document.getElementById('f-area-proceso').value.trim();
+  const personas    = document.getElementById('f-personas').value;
+  const horaPartida = document.getElementById('f-hora-partida').value;
+  const horaSalida  = document.getElementById('f-hora-salida').value;
+
+  if (!fecha||!ciudad||!areaProceso||!personas||!horaPartida||!horaSalida) {
+    showAlert('sub-alert','error','Complete todos los campos obligatorios: Fecha, Ciudad, Área/Proceso, N° Personas, Hora Partida y Hora Salida.');
+    return;
+  }
+
+  const params = {
+    action:'submitRequest',
+    areaSolicitante: user.areaNombre,
+    fecha, ciudad, areaProceso,
+    nPersonas: personas,
+    horaPartida, horaSalida,
+    almuerzo, cena,
+    observaciones: document.getElementById('f-obs').value||''
+  };
+
+  showAlert('sub-alert','info','Enviando solicitud...');
+  try {
+    if (DEMO_MODE) { showAlert('sub-alert','success','✅ (Demo) Solicitud enviada. Conecta tu Apps Script para guardar datos reales.'); resetForm(); return; }
+    const res = await api(params);
+    if (res.success) { showAlert('sub-alert','success',`✅ Solicitud registrada. ID: ${res.id}`); resetForm(); }
+    else showAlert('sub-alert','error', res.error||'Error al enviar la solicitud.');
+  } catch(e) { showAlert('sub-alert','error', e.message); }
+}
+
+function resetForm() {
+  ['f-personas','f-obs','f-area-proceso'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-fecha').value   = new Date().toISOString().split('T')[0];
+  document.getElementById('f-ciudad').value  = '';
+  document.getElementById('f-hora-partida').value = '';
+  document.getElementById('f-hora-salida').value  = '';
+  almuerzo='Si'; cena='Si';
+  setToggle('almuerzo','Si'); setToggle('cena','Si');
+}
+
+// ── MIS SOLICITUDES ──
+async function loadMis() {
+  const ldr=document.getElementById('ldr-mis');
+  const con=document.getElementById('mis-container');
+  ldr.classList.add('show'); con.innerHTML='';
+  try {
+    let data;
+    if (DEMO_MODE) {
+      data = DEMO_REQS.filter(r=>r.areaSolicitante===user.areaNombre);
+      if(!data.length) data=DEMO_REQS.slice(0,2).map(r=>({...r,areaSolicitante:user.areaNombre}));
+    } else {
+      const res = await api({ action:'getRequests', area:user.areaNombre });
+      if(!res.success) throw new Error(res.error);
+      data=res.data;
+    }
+    ldr.classList.remove('show');
+    con.innerHTML = data.length ? renderTable(data,false) : '<div class="empty"><div class="eico">📂</div><p>Sin solicitudes para su área</p></div>';
+  } catch(e) { ldr.classList.remove('show'); con.innerHTML=`<div class="alert alert-error show">${esc(e.message)}</div>`; }
+}
+
+// ── ADMIN ──
+async function loadAdmin() {
+  const ldr=document.getElementById('ldr-admin');
+  const con=document.getElementById('admin-container');
+  ldr.classList.add('show'); con.innerHTML='';
+  try {
+    if (DEMO_MODE) { allReqs=[...DEMO_REQS]; ldr.classList.remove('show'); setStats(allReqs); fillAreaFilter(allReqs); renderAdmin(allReqs); return; }
+    const [rr,sr] = await Promise.all([
+      api({action:'getRequests',area:'ALL',adminClave:adminKey}),
+      api({action:'getStats',adminClave:adminKey})
+    ]);
+    ldr.classList.remove('show');
+    if(rr.success){ allReqs=rr.data; fillAreaFilter(allReqs); renderAdmin(allReqs); }
+    if(sr.success){ document.getElementById('s-total').textContent=sr.stats.total; document.getElementById('s-pend').textContent=sr.stats.pendiente; document.getElementById('s-apro').textContent=sr.stats.aprobado; document.getElementById('s-rech').textContent=sr.stats.rechazado; }
+  } catch(e){ ldr.classList.remove('show'); con.innerHTML=`<div class="alert alert-error show">${esc(e.message)}</div>`; }
+}
+
+function setStats(data){
+  const s={total:data.length,p:0,a:0,r:0};
+  data.forEach(r=>{ if(r.estado==='Pendiente')s.p++; else if(r.estado==='Aprobado')s.a++; else if(r.estado==='Rechazado')s.r++; });
+  document.getElementById('s-total').textContent=s.total;
+  document.getElementById('s-pend').textContent=s.p;
+  document.getElementById('s-apro').textContent=s.a;
+  document.getElementById('s-rech').textContent=s.r;
+}
+
+function fillAreaFilter(data){
+  const areas=[...new Set(data.map(r=>r.areaSolicitante))].sort();
+  document.getElementById('f-area-f').innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+}
+
+function applyFilters(){
+  const s=document.getElementById('f-status').value;
+  const c=document.getElementById('f-ciudad-f').value;
+  const a=document.getElementById('f-area-f').value;
+  const filtered=allReqs.filter(r=>(!s||r.estado===s)&&(!c||r.ciudad===c)&&(!a||r.areaSolicitante===a));
+  setStats(filtered); renderAdmin(filtered);
+}
+
+function renderAdmin(data){
+  document.getElementById('admin-container').innerHTML = data.length ? renderTable(data,true) : '<div class="empty"><div class="eico">🔍</div><p>Sin resultados</p></div>';
+}
+
+// ── STATUS UPDATE ──
+function openStatusModal(id,estado,area,fecha,ciudad,personas){
+  document.getElementById('mst-title').textContent=`Gestionar ${id}`;
+  document.getElementById('mst-body').textContent=`${area} · ${ciudad} · ${fecha} · ${personas} personas`;
+  document.getElementById('mst-detail').textContent=`Estado actual: ${estado}`;
+  const acts=document.getElementById('mst-actions');
+  acts.innerHTML=`<button class="btn btn-secondary btn-sm" onclick="closeModal('modal-status')">Cancelar</button>
+    ${estado!=='Aprobado'?`<button class="btn btn-success btn-sm" onclick="doUpdateStatus('${esc(id)}','Aprobado')">✅ Aprobar</button>`:''}
+    ${estado!=='Rechazado'?`<button class="btn btn-danger btn-sm" onclick="doUpdateStatus('${esc(id)}','Rechazado')">❌ Rechazar</button>`:''}
+    ${estado!=='Pendiente'?`<button class="btn btn-warning btn-sm" onclick="doUpdateStatus('${esc(id)}','Pendiente')">🔄 Pendiente</button>`:''}`;
+  openModal('modal-status');
+}
+
+async function doUpdateStatus(id,estado){
+  closeModal('modal-status');
+  try {
+    if(DEMO_MODE){ allReqs=allReqs.map(r=>r.id===id?{...r,estado}:r); setStats(allReqs); renderAdmin(allReqs); return; }
+    const res=await api({action:'updateStatus',id,estado,adminClave:adminKey});
+    if(res.success) await loadAdmin();
+    else alert('Error: '+(res.error||'No se pudo actualizar.'));
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+// ── TABLE RENDER ──
+function renderTable(data,isAdmin){
+  const sc={'Pendiente':'b-pend','Aprobado':'b-apro','Rechazado':'b-rech'};
+  const fmtDate=s=>{ try{return new Date(s).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'})}catch{return s} };
+
+  const rows=data.map(r=>{
+    const highlight = parseInt(r.nPersonas)>=100 ? ' class="row-highlight"' : '';
+    return `<tr${highlight}>
+      <td><code style="font-size:11px;color:var(--muted)">${esc(r.id)}</code></td>
+      ${isAdmin?`<td>${esc(r.areaSolicitante)}</td>`:''}
+      <td>${esc(r.fecha)}</td>
+      <td><strong>${esc(r.ciudad)}</strong></td>
+      <td>${esc(r.areaProceso)}</td>
+      <td style="text-align:center;font-weight:700">${esc(String(r.nPersonas))}</td>
+      <td>${esc(r.horaPartida)}</td>
+      <td>${esc(r.horaSalida)}</td>
+      <td><span class="badge ${r.almuerzo==='Si'?'b-si':'b-no'}">${esc(r.almuerzo)}</span></td>
+      <td><span class="badge ${r.cena==='Si'?'b-si':'b-no'}">${esc(r.cena)}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${r.observaciones?esc(r.observaciones.slice(0,30)):'—'}</td>
+      <td><span class="badge ${sc[r.estado]||''}">${esc(r.estado)}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${fmtDate(r.timestamp)}</td>
+      ${isAdmin?`<td><button class="btn btn-secondary btn-sm" onclick="openStatusModal('${esc(r.id)}','${esc(r.estado)}','${esc(r.areaSolicitante)}','${esc(r.fecha)}','${esc(r.ciudad)}','${esc(String(r.nPersonas))}')" style="white-space:nowrap">Gestionar</button></td>`:''}
+    </tr>`;
+  }).join('');
+
+  return `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>ID</th>
+      ${isAdmin?'<th>Área</th>':''}
+      <th>Fecha</th><th>Ciudad</th><th>Área / Proceso</th>
+      <th>N° Pers.</th><th>H. Partida</th><th>H. Salida</th>
+      <th>Almuerzo</th><th>Cena</th><th>Observaciones</th>
+      <th>Estado</th><th>Registrado</th>
+      ${isAdmin?'<th>Acción</th>':''}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// ── UTILS ──
+function showAlert(id,type,msg){const el=document.getElementById(id);el.className=`alert alert-${type} show`;el.textContent=msg;}
+function hideAlert(id){document.getElementById(id).classList.remove('show');}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+</script>
+</body>
+</html>
